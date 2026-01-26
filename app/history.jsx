@@ -37,14 +37,14 @@ export default function HistoryScreen() {
         <View style={[styles.iconCircle, {backgroundColor: isIncome ? '#e8f8e8': '#ffeeee'}]}>
           <FontAwesome6 
             name= {isIncome ? 'arrow-up' : 'cart-shopping'}  
-            size='16' 
+            size={16} 
             color={isIncome ? 'green' : 'red' }
           />
         </View>
         <View>
           <Text style={styles.noteText}>{item.note}</Text>
           <Text style={styles.dateText}>
-            {getRelativeTime(item.timestamp)}
+            {getRelativeTime(new Date(item.timestamp))}
           </Text>
         </View>
       </View>
@@ -52,7 +52,6 @@ export default function HistoryScreen() {
         {isIncome? '+':'-'}{formatTime(item.amount)}
       </Text>
     </View>
-
     )
   };
 
