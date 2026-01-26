@@ -10,8 +10,8 @@ export default function ShopScreen() {
       { id: '1', name: '10 min YouTube', cost: 10 * 60 * 1000, icon: 'youtube', color: '#FF0000' },
       { id: '2', name: '20 min Social Media', cost: 20 * 60 * 1000, icon: 'hashtag', color: '#E1306C' },
       { id: '3', name: '30 min Gaming', cost: 30 * 60 * 1000, icon: 'gamepad', color: '#6441a5' },
-      { id: '4', name: '1 hour Movie', cost: 60 * 60 * 1000, icon: 'film', color: '#000000' },
-      { id: '5', name: 'Cheat Meal', cost: 120 * 60 * 1000, icon: 'utensils', color: '#FFA500' },
+      { id: '4', name: '2 hour Movie', cost: 120 * 60 * 1000, icon: 'film', color: '#000000' },
+      { id: '5', name: 'Fancy Food', cost: 30 * 60 * 1000, icon: 'utensils', color: '#FFA500' },
     ];
     const handlePurchase = (item) => {
         if (timeBalance < item.cost) {
@@ -45,7 +45,7 @@ export default function ShopScreen() {
 
     const formatCost = (ms) => {
         const mins = Math.floor(ms / 60000);
-        return mins >= 60 ? `${mins / 60}` :  `${mins}`;
+        return mins >= 60 ? `${mins / 60} hours` :  `${mins} minutes`;
     }
 
     const renderItem = ({ item }) => {
@@ -57,15 +57,15 @@ export default function ShopScreen() {
             <FontAwesome6 name={item.icon} size={30} color={canAfford ? item.color : '#ccc'} />    
           </View>
 
-          <View>
+          <View style={styles.infoContainer}>
             <Text style={styles.itemName}>{item.name}</Text>  
-            <View>
-              <FontAwesome6 name='clock' size={12} />
+            <View style={styles.costTag}>
+              <FontAwesome6 name='clock' size={12} color='#888' />
               <Text style={styles.costText}>Cost: {formatCost(item.cost)}</Text>
             </View>
           </View>
           <TouchableOpacity 
-            style={[styles.buyButton]}
+            style={[styles.buyButton, {backgroundColor: canAfford ? 'green' : 'gray'}]}
             onPress={() => handlePurchase(item)}
             disabled={!canAfford}
           >
@@ -153,23 +153,38 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1
   },
   iconContainer: {
+    width: 60,
+    alignItems: 'center',
+  },
+  infoContainer: {
     flex: 1,
+    paddingLeft: 10,
   },
   itemName: {
     fontSize: 16,
     fontWeight: '600',
     color: '#333'
   },
+  costTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    marginTop: 4,
+  },
   costText: {
     fontSize: 12,
-    marginTop: 2,
+    color: '#888'
   },
   buyButton: {
-    backgroundColor: 'gray'
+    // backgroundColor: 'green',
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    borderRadius: 10,
   },
   buyButtonText: {
     fontSize: 16,
     fontWeight: 'bold',
+    color: '#fff'
   },
 }) 
 
