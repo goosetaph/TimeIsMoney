@@ -70,6 +70,10 @@ export const CurrencyProvider = ({ children }) => {
         setHistory(prev => [newLog, ...prev]);
     };
 
+    const editHistory = (id, newNote) => {
+        setHistory(prev => prev.map(item => item.id === id ? {...item, note: newNote} : item))
+    }
+
     const addShopItem = (item) => {
         setShopItems(prev => [...prev, { ...item, id: Date.now().toString(), isPinned: false}])
     }
@@ -96,7 +100,7 @@ export const CurrencyProvider = ({ children }) => {
     }
 
     return (
-        <CurrencyContext.Provider value={{ timeBalance, history, addTransaction, isLoaded, shopItems, addShopItem, editShopItem, deleteShopItem, togglePinItem, moveItem}}>
+        <CurrencyContext.Provider value={{ timeBalance, history, editHistory, addTransaction, isLoaded, shopItems, addShopItem, editShopItem, deleteShopItem, togglePinItem, moveItem}}>
             {children}
         </CurrencyContext.Provider>
     );

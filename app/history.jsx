@@ -1,16 +1,34 @@
-import { View, FlatList, StyleSheet, Text } from "react-native";
+import { View, FlatList, StyleSheet, Text, TouchableOpacity, Modal, TextInput } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { FontAwesome6 } from "@expo/vector-icons";
 import { useCurrency } from "@/context/CurrencyContext";
+import { useState } from "react";
 
 
 export default function HistoryScreen() {
-  const {history} = useCurrency();
+  const {history, editHistory} = useCurrency();
   const {timeBalance} = useCurrency();
+
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedLog, setSelectedLog] = useState(null);
+  const [newNote, setNewNote] = useState('');
+
+  const openEditModal = (item) => {
+    setSelectedLog(item);
+    setNewNote(item.note);
+    setModalVisible(true);
+  }
+
+  const saveEdit = () => {
+    if (selectedLog && newNote.trim()) {
+      editHistory(selectedLog.id, newNote);
+      setModalVisible(false);
+    }
+  }
 
   const formatTime = (ms) => {
     if (!ms) return "00:00:00:000";
-    const hours = Math.floor(ms / 3600000)
+    const hours = Math.floor(ms / 3600000);
     const minutes = Math.floor((ms % 3600000) / 60000);
     const seconds = Math.floor((ms % 60000) / 1000);
     const milliseconds = Math.floor(ms % 1000);
@@ -32,7 +50,12 @@ export default function HistoryScreen() {
           />
         </View>
         <View>
-          <Text style={styles.noteText}>{item.note}</Text>
+          <View style={{flexDirection: 'row', alignItems: 'center', gap: 8}}>
+            <Text style={styles.noteText}>{item.note}</Text>
+            <TouchableOpacity onPress={() => openEditModal(item)}>
+              <FontAwesome6 name="pencil" size={12} color='#999'/>
+            </TouchableOpacity>
+          </View>
           <Text style={styles.dateText}>
             {getRelativeTime(new Date(item.timestamp))}
           </Text>
@@ -92,6 +115,22 @@ export default function HistoryScreen() {
         renderItem={renderItem}
         contentContainerStyle={styles.listPadding}/>
       )}
+      <Modal visible={modalVisible} animationType="fade" transparent={true}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Edit Note</Text>
+            <TextInput style={styles.input} value={newNote} onChangeText={setNewNote}/>
+            <View style={styles.modalButtons}>
+              <TouchableOpacity style={styles.cancelButton} onPress={() => setModalVisible(false)}>
+                <Text style={styles.cancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.saveButton} onPress={saveEdit}>
+                <Text style={styles.saveText}>Save</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   )
 }
@@ -190,6 +229,57 @@ const styles = StyleSheet.create({
   emptyText:{
     color: '#aaa',
     fontSize: 16,
-  }
+  },
+  modalOverlay: { 
+    flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+  },
+  modalContent: { 
+    backgroundColor: 'white', 
+    width: '90%', 
+    borderRadius: 20, 
+    padding: 20, 
+    elevation: 5
+  },
+  modalTitle: { 
+    fontSize: 22, 
+    fontWeight: 'bold', 
+    marginBottom: 20, 
+    textAlign: 'center', 
+  },
+  input: { 
+    borderWidth: 1, 
+    borderColor: '#ddd', 
+    borderRadius: 8, 
+    padding: 10, 
+    fontSize: 16, 
+  },
+  modalButtons: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    marginTop: 20, 
+  },
+  cancelButton: { 
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    backgroundColor: 'lightgray',
+    borderRadius: 10
+  },
+  cancelText: { 
+    color: 'red', 
+    fontSize: 16 
+  },
+  saveButton: { 
+    backgroundColor: 'forestgreen', 
+    paddingVertical: 10, 
+    paddingHorizontal: 30, 
+    borderRadius: 10 
+  },
+  saveText: { 
+    color: 'white', 
+    fontWeight: 'bold', 
+    fontSize: 16, 
+  },
 })
 
