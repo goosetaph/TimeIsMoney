@@ -40,7 +40,6 @@ export default function TimerScreen() {
   useEffect(() => {
     let stopLoop = false;
     if (isRunning) {
-      // backgroundAnim.setValue(0.5); TODO: fix why Animated.loop doesnt work here
       Animated.timing(backgroundAnim, {
             toValue: 0.5,
             duration: 1500,
@@ -122,7 +121,7 @@ export default function TimerScreen() {
   //TODO: learn more about Animated (interpolate, useRef, etc)
   const backgroundColor = backgroundAnim.interpolate({
     inputRange: [0, 0.5, 1],
-    outputRange: ['#fff', '#e8f5e9', '#a5d6a7']
+    outputRange: ['#fff', 'lightcyan', 'lightblue']
   });
 
   return (
@@ -144,7 +143,7 @@ export default function TimerScreen() {
           </TouchableOpacity>
         ) : (
           <TouchableOpacity style={styles.startButton} onPress={startTime}>
-            <FontAwesome6 name="play" size={24} color="darkblue" />
+            <FontAwesome6 name="play" size={24} color="blue" />
           </TouchableOpacity>
         )
         }
