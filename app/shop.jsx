@@ -1,104 +1,218 @@
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Platform, Alert } from "react-native";
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Platform, Alert, Modal, TextInput } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { FontAwesome6 } from "@expo/vector-icons";
 import { useCurrency } from "@/context/CurrencyContext";
+import { useState } from "react";
 
 export default function ShopScreen() {
-    const { timeBalance, addTransaction } = useCurrency();
-    //TODO: Adjust the shop items
-    const shopItems = [
-      { id: '1', name: '10 min YouTube', cost: 10 * 60 * 1000, icon: 'youtube', color: '#FF0000' },
-      { id: '2', name: '20 min Social Media', cost: 20 * 60 * 1000, icon: 'hashtag', color: '#E1306C' },
-      { id: '3', name: '30 min Gaming', cost: 30 * 60 * 1000, icon: 'gamepad', color: '#6441a5' },
-      { id: '4', name: '2 hour Movie', cost: 120 * 60 * 1000, icon: 'film', color: '#000000' },
-      { id: '5', name: 'Fancy Food', cost: 30 * 60 * 1000, icon: 'utensils', color: '#FFA500' },
-    ];
-    const handlePurchase = (item) => {
-        if (timeBalance < item.cost) {
-            if (Platform.OS === 'web') {
-                window.alert("Not enough time. Go work!");
-            } else {
-                Alert.alert("Locked", "Not enough time. Go work!")
-            }
-            return;
-        }
-        
-        if (Platform.OS === 'web') {
-            const confirmed = window.confirm(`Are you sure you want to spend time on ${item.name}?`);
+  const { timeBalance, addTransaction, shopItems, addShopItem, editShopItem, deleteShopItem, togglePinItem, moveItem } = useCurrency();
+  const [isEditMode, setIsEditMode] = useState(false);
 
-            if (confirmed) {
-                addTransaction(item.cost, 'EXPENSE', `Redeemed: ${item.name}`);
-            }
-        } else {
-            Alert.alert(
-                "Confirm Purchase",
-                `Spend ${item.name.split(' ')[0]} of your time on this?`,
-                [
-                    {text: 'Cancel', style: 'cancel'},
-                    {text: 'Redeem',
-                        onPress: () => addTransaction(item.cost, 'EXPENSE', `Redeemed: ${item.name}`)
-                    }
-                ]
-            )
-        }
+  const [modalVisible, setModalVisible] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
+
+  const [name, setName] = useState('');
+  const [cost, setCost] = useState('');
+  const [icon, setIcon] = useState('gift');
+  const [color, setColor] = useState('green');
+
+  const AVAILABLE_ICONS = ['gamepad', 'youtube', 'hashtag', 'film', 'utensils', 'book', 'music', 'plane', 'gift', 'laptop',];
+  const AVAILABLE_COLORS = ['#FF0000', '#E1306C', '#6441a5', '#FFA500', '#4CAF50', '#2196F3', '#FFD700', '#000000'];
+
+
+  const handlePurchase = (item) => {
+    if (timeBalance < item.cost) {
+      if (Platform.OS === 'web') {
+        window.alert("Not enough time. Go work!");
+      } else {
+        Alert.alert("Locked", "Not enough time. Go work!")
+      }
+      return;
     }
 
-    const formatCost = (ms) => {
-        const mins = Math.floor(ms / 60000);
-        return mins >= 60 ? `${mins / 60} hours` :  `${mins} minutes`;
+    if (Platform.OS === 'web') {
+      const confirmed = window.confirm(`Are you sure you want to spend time on ${item.name}?`);
+
+      if (confirmed) {
+        addTransaction(item.cost, 'EXPENSE', `Redeemed: ${item.name}`);
+      }
+    } else {
+      Alert.alert(
+        "Confirm Purchase",
+        `Spend ${item.name.split(' ')[0]} of your time on this?`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Redeem',
+            onPress: () => addTransaction(item.cost, 'EXPENSE', `Redeemed: ${item.name}`)
+          }
+        ]
+      )
     }
+  }
 
-    const renderItem = ({ item }) => {
-      const canAfford = timeBalance >= item.cost;
+  const openModal = (item = null) => {
+    if (item) {
+      setEditingItem(item);
+      setName(item.name);
+      setCost((item.cost / 60000).toString());
+      setIcon(item.icon);
+      setColor(item.color);
+    } else {
+      setEditingItem(null);
+      setName('');
+      setCost('');
+      setIcon('gift');
+      setColor('green');
+    }
+    setModalVisible(true);
+  }
 
-      return (
-        <View style={styles.itemCard}>
-          <View style={styles.iconContainer}>
-            <FontAwesome6 name={item.icon} size={30} color={canAfford ? item.color : '#ccc'} />    
-          </View>
+  const saveItem = () => {
+    const cost = parseInt(cost) * 60 * 1000;
+    if (!name || !cost) return;
 
-          <View style={styles.infoContainer}>
-            <Text style={styles.itemName}>{item.name}</Text>  
-            <View style={styles.costTag}>
-              <FontAwesome6 name='clock' size={12} color='#888' />
-              <Text style={styles.costText}>Cost: {formatCost(item.cost)}</Text>
-            </View>
-          </View>
-          <TouchableOpacity 
-            style={[styles.buyButton, {backgroundColor: canAfford ? 'green' : 'gray'}]}
-            onPress={() => handlePurchase(item)}
-            disabled={!canAfford}
-          >
-            <Text style={styles.buyButtonText}>{canAfford ? 'Redeem' : 'Locked'}</Text>
-          </TouchableOpacity>    
+    if (editingItem) {
+      editShopItem(editingItem.id, { name, cost, icon, color });
+    } else {
+      addShopItem({ name, cost, icon, color });
+    }
+    setModalVisible(false);
+  }
+
+  const sortedItems = [...shopItems].sort((a, b) => {
+    if (a.isPinned === b.isPinned) return 0;
+    return a.isPinned ? -1 : 1;
+  })
+
+  const formatCost = (ms) => {
+    const mins = Math.floor(ms / 60000);
+    return mins >= 60 ? `${mins / 60} hours` : `${mins} minutes`;
+  }
+
+  const renderItem = ({ item }) => {
+    const canAfford = timeBalance >= item.cost;
+
+    return (
+      <View style={styles.itemCard}>
+        <View style={styles.iconContainer}>
+          <FontAwesome6 name={item.icon} size={30} color={canAfford ? item.color : '#ccc'} />
         </View>
-      );
-    }
+
+        <View style={styles.infoContainer}>
+          <Text style={styles.itemName}>{item.name}</Text>
+          <View style={styles.costTag}>
+            <FontAwesome6 name='clock' size={12} color='#888' />
+            <Text style={styles.costText}>Cost: {formatCost(item.cost)}</Text>
+          </View>
+        </View>
+
+        {isEditMode ? (
+          <View style={styles.editActions}>
+            <TouchableOpacity onPress={() => togglePinItem(item.id)}>
+              <FontAwesome6 name="thumbtack" size={18} color={item.isPinned ? 'orange': '#ddd'}/>
+            </TouchableOpacity>
+            
+            <TouchableOpacity onPress={() => moveItem(index, -1)}>
+              <FontAwesome6 name="arrow-up" size={18} color={'#555'}/>
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={() => moveItem(index, 1)}>
+              <FontAwesome6 name="arrow-down" size={18} color={'#555'}/>
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={() => openModal(item)}>
+              <FontAwesome6 name="pencil" size={18} color={'blue'}/>
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={() => deleteShopItem(item.id)}>
+              <FontAwesome6 name="trash" size={18} color={'red'}/>
+            </TouchableOpacity>
+          </View>
+        ):(
+        <TouchableOpacity
+          style={[styles.buyButton, { backgroundColor: canAfford ? 'green' : 'gray' }]}
+          onPress={() => handlePurchase(item)}
+          disabled={!canAfford}
+        >
+          <Text style={styles.buyButtonText}>{canAfford ? 'Redeem' : 'Locked'}</Text>
+        </TouchableOpacity>)
+        }
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
+        <TouchableOpacity style={styles.editToggle} onPress={() => setIsEditMode(!isEditMode)}>
+          <FontAwesome6 name={isEditMode ? "check" : "gear"} size={20} color="white"/>
+          <Text style={styles.editToggleText}>{isEditMode ? "Done" : "Edit"}</Text>
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>Marketplace</Text>
         <View style={styles.balanceContainer}>
           <FontAwesome6 name="coins" size={14} color="gold" />
           <Text style={styles.balanceText}>
-             {timeBalance >= 36000000 
-             ? `${(timeBalance/3600000).toFixed(1)}h`
-             : `${Math.floor(timeBalance / 60000)}m`} available
+            {timeBalance >= 36000000
+              ? `${(timeBalance / 3600000).toFixed(1)}h`
+              : `${Math.floor(timeBalance / 60000)}m`} available
           </Text>
         </View>
       </View>
 
       <FlatList
-        data={shopItems}
+        data={isEditMode ? shopItems : sortedItems}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         contentContainerStyle={styles.listPadding}
       />
+
+      {isEditMode && (
+        <TouchableOpacity style={styles.fab} onPress={() => openModal(null)}>
+          <FontAwesome6 name="plus" size={24} color="white" />
+        </TouchableOpacity>
+      )}
+
+      <Modal visible={modalVisible} animationType="slide" transparent={true}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>
+              {editingItem ? 'Edit Item' : 'New Activities'}
+            </Text>
+            <Text style={styles.label}>Name</Text>
+            <TextInput style={styles.input} value={name} onChangeText={setName} placeholder="e.g. 15 min Nap" />
+            <Text style={styles.label}>Cost (Minutes)</Text>
+            <TextInput style={styles.input} value={cost} onChangeText={setCost} keyboardType="numeric" placeholder="e.g. 15" />
+            <Text style={styles.label}>Icon</Text>
+            <View style={styles.selectionRow}>
+              {AVAILABLE_ICONS.map(i => (
+                <TouchableOpacity key={i} onPress={() => setIcon(i)} style={[styles.selectBox, icon === i && styles.selectedBox]}>
+                  <FontAwesome6 name={i} size={20} color={icon === i ? 'white' : '#333'}/>
+                </TouchableOpacity>
+              ))}
+            </View>
+            <Text style={styles.label}>Icon</Text>
+            <View style={styles.selectionRow}>
+              {AVAILABLE_COLORS.map(c => (
+                <TouchableOpacity key={c} onPress={() => setColor(c)} style={[styles.colorBox, {backgroundColor: c}, color === c && styles.selectedColorBorder]} />
+              ))}
+            </View>
+
+            <View style={styles.modalButtons}>
+              <TouchableOpacity style={styles.cancelButton} onPress={() => setModalVisible(false)}>
+                <Text style={styles.cancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.saveButton} onPress={saveItem}>
+                <Text style={styles.saveText}>Save</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
- 
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -115,7 +229,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   balanceContainer: {
-    position: 'absolute', //TODO: alternative to absolute position
+    position: 'absolute',
     top: 20,
     right: 20,
     flexDirection: 'row',
@@ -135,9 +249,32 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16,
   },
-  listPadding: {
+  editToggle: {
+    position: 'absolute',
+    top: 20,
+    left: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#555',
+    paddingVertical: 8,
     paddingHorizontal: 15,
-    paddingBottom: 15,
+    borderRadius: 20,
+    gap: 8,
+  },
+  editToggleText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  balanceText: {
+    color: 'gold',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  listPadding: {
+    padding: 15,
+    paddingBottom: 100,
   },
   itemCard: {
     backgroundColor: '#fefefe',
@@ -149,7 +286,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     elevation: 2,
     shadowColor: 'black',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1
   },
   iconContainer: {
@@ -175,8 +312,105 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#888'
   },
+  editActions: {
+    flexDirection: 'row',
+    gap: 15,
+  },
+  fab: {
+    position: 'absolute',
+    bottom: 30,
+    right: 30,
+    backgroundColor: 'dodgerblue',
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 5,
+  },
+  modalOverlay: { 
+    flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+  },
+  modalContent: { 
+    backgroundColor: 'white', 
+    width: '90%', 
+    borderRadius: 20, 
+    padding: 20, 
+    elevation: 5
+  },
+  modalTitle: { 
+    fontSize: 22, 
+    fontWeight: 'bold', 
+    marginBottom: 20, 
+    textAlign: 'center', 
+  },
+  label: { 
+    fontWeight: 'bold', 
+    marginTop: 10, 
+    marginBottom: 5, 
+    color: '#555', 
+  },
+  input: { 
+    borderWidth: 1, 
+    borderColor: '#ddd', 
+    borderRadius: 8, 
+    padding: 10, 
+    fontSize: 16, 
+  },
+  selectionRow: { 
+    flexDirection: 'row', 
+    flexWrap: 'wrap', 
+    gap: 10, 
+    marginBottom: 10, 
+  },
+  selectBox: { 
+    padding: 10, 
+    borderRadius: 8, 
+    borderWidth: 1, 
+    borderColor: '#ddd', 
+  },
+  selectedBox: { 
+    backgroundColor: '#333', 
+    borderColor: '#333', 
+  },
+  colorBox: { 
+    width: 30, 
+    height: 30, 
+    borderRadius: 15, 
+  },
+  selectedColorBorder: { 
+    borderWidth: 3, 
+    borderColor: '#333', 
+  },
+  modalButtons: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    marginTop: 20, 
+  },
+  cancelButton: { 
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    backgroundColor: 'lightgray',
+    borderRadius: 10
+  },
+  cancelText: { 
+    color: 'red', 
+    fontSize: 16 
+  },
+  saveButton: { 
+    backgroundColor: 'forestgreen', 
+    paddingVertical: 10, 
+    paddingHorizontal: 30, 
+    borderRadius: 10 
+  },
+  saveText: { 
+    color: 'white', 
+    fontWeight: 'bold', 
+    fontSize: 16, 
+  },
   buyButton: {
-    // backgroundColor: 'green',
     paddingHorizontal: 15,
     paddingVertical: 10,
     borderRadius: 10,
@@ -186,5 +420,5 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#fff'
   },
-}) 
+})
 
