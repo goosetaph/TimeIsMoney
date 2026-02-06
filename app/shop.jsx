@@ -145,11 +145,14 @@ export default function ShopScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
+        <Text style={styles.headerTitle}>Marketplace</Text>
+      </View>
+      <View style={styles.subHeader}>
+
         <TouchableOpacity style={styles.editToggle} onPress={() => setIsEditMode(!isEditMode)}>
           <FontAwesome6 name={isEditMode ? "check" : "gear"} size={20} color="white"/>
           <Text style={styles.editToggleText}>{isEditMode ? "Done" : "Edit"}</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Marketplace</Text>
         <View style={styles.balanceContainer}>
           <FontAwesome6 name="coins" size={14} color="gold" />
           <Text style={styles.balanceText}>
@@ -222,15 +225,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-    padding: 20,
+    paddingTop: 20,
+    paddingBottom: 10,
   },
   headerTitle: {
     fontSize: 32,
     fontWeight: 'bold',
   },
+  subHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    padding: 20,
+  },
   balanceContainer: {
     position: 'absolute',
-    top: 20,
     right: 20,
     flexDirection: 'row',
     alignItems: 'center',
@@ -251,7 +260,6 @@ const styles = StyleSheet.create({
   },
   editToggle: {
     position: 'absolute',
-    top: 20,
     left: 20,
     flexDirection: 'row',
     alignItems: 'center',

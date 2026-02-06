@@ -167,65 +167,72 @@ export default function TimerScreen() {
   });
 
   return (
-    <Animated.View style={[styles.mainView, { backgroundColor }]}
+    <Animated.View style={[{flex: 1}, { backgroundColor }]}
     onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}
     >
-
-      <SafeAreaView style={styles.walletContainer}>
-        <FontAwesome6 name="coins" size={18} color="gold" />
-        <Text style={styles.balanceText}>
-          {formatTime(timeBalance)}
-        </Text>
-      </SafeAreaView>
-
-      <View style={styles.guideContainer}>
-        {isProductive ? (
-          <View style={{alignItems: 'center'}}>
-            <Text style={styles.guideText}>Swipe UP for Worthless Mode</Text>
-            <FontAwesome6 name='chevron-up' size={20} color='#ccc'/>
+      <SafeAreaView style={styles.mainView}>
+        <View style={styles.subHeader}>
+          <View style={styles.walletContainer}>
+            <FontAwesome6 name="coins" size={18} color="gold" />
+            <Text style={styles.balanceText}>
+              {formatTime(timeBalance)}
+            </Text>
           </View>
+        </View>
+
+        <View style={styles.body}>
+
+        <View style={[styles.timeCircle, {borderColor: isProductive ? '#eee' : '#ffcccc'}]}/>
+        <View style={{position: 'absolute', top: 0, left: 0, right: 0, bottom: 80, justifyContent: 'center', alignItems: 'center'}}>
+          {/*TODO: find alternative of absolute position above */}
+          <Text style={styles.timeText}>
+            {formatTime(time)}
+          </Text>
+          <Text style={{color: isProductive ? '#666' : '#d32f2f'}}>
+            {isProductive ? "Earning Time" : "Wasting Time"}
+          </Text>
+        </View>
+
+        <View style={{ flexDirection: "row", gap: 20 }}>
+          {isRunning ? (
+            <TouchableOpacity style={styles.stopButton} onPress={stopTime}>
+              <FontAwesome6 name="pause" size={24} color="maroon" />
+            </TouchableOpacity>
           ) : (
-          <View style={{alignItems: 'center'}}>
-            <FontAwesome6 name='chevron-down' size={20} color='#ccc'/>
-            <Text style={styles.guideText}>Swipe DOWN for Productive Mode</Text>
-          </View>
+            <TouchableOpacity style={styles.startButton} onPress={startTime}>
+              <FontAwesome6 name="play" size={24} color="blue" />
+            </TouchableOpacity>
           )
-        }
-      </View>
+          }
+          {time > 0 && (
+            <TouchableOpacity style={styles.resetButton} onPress={resetTime}>
+              <FontAwesome6 name="rotate-left" size={24} color="gray" />
+            </TouchableOpacity>
+          )}
+        </View>
+        
+        <View style={styles.guideContainer}>
+          {isProductive ? (
+            <View style={{alignItems: 'center'}}>
+              <Text style={styles.guideText}>Swipe UP for Worthless Mode</Text>
+              <FontAwesome6 name='chevron-up' size={20} color='#ccc'/>
+            </View>
+            ) : (
+            <View style={{alignItems: 'center'}}>
+              <FontAwesome6 name='chevron-down' size={20} color='#ccc'/>
+              <Text style={styles.guideText}>Swipe DOWN for Productive Mode</Text>
+            </View>
+            )
+          }
+        </View>
 
-      <View style={[styles.timeCircle, {borderColor: isProductive ? '#eee' : '#ffcccc'}]}>
-        <Text style={styles.timeText}>
-          {formatTime(time)}
-        </Text>
-        <Text style={{color: isProductive ? '#666' : '#d32f2f'}}>
-          {isProductive ? "Earning Time" : "Wasting Time"}
-        </Text>
-      </View>
-
-      <View style={{ flexDirection: "row", gap: 20 }}>
-        {isRunning ? (
-          <TouchableOpacity style={styles.stopButton} onPress={stopTime}>
-            <FontAwesome6 name="pause" size={24} color="maroon" />
-          </TouchableOpacity>
-        ) : (
-          <TouchableOpacity style={styles.startButton} onPress={startTime}>
-            <FontAwesome6 name="play" size={24} color="blue" />
-          </TouchableOpacity>
-        )
-        }
-        {time > 0 && (
-          <TouchableOpacity style={styles.resetButton} onPress={resetTime}>
-            <FontAwesome6 name="rotate-left" size={24} color="gray" />
-          </TouchableOpacity>
-        )}
-      </View>
-
-      <View style={{position: 'absolute', bottom: 50}}>
-        <Text style={{color: '#aaa', fontSize: 12}}>
-          {isRunning ? "Pause to switch mode" : ""}
-        </Text>
-      </View>
-
+        <View style={{position: 'relative', top: 70}}>
+          <Text style={{color: '#aaa', fontSize: 12}}>
+            {isRunning ? "Pause to switch mode" : ""}
+          </Text>
+        </View>
+        </View>
+      </SafeAreaView>
     </Animated.View>
   );
 }
@@ -234,6 +241,7 @@ const buttonBase = {
   width: 80,
   height: 80,
   borderRadius: 40,
+  top: 30,
   justifyContent: 'center',
   alignItems: 'center',
   borderWidth: 2,
@@ -247,9 +255,18 @@ function createStyles(theme) {
   return StyleSheet.create({
     mainView: {
       flex: 1,
+
+    },
+    subHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      alignItems: 'center',
+      padding: 20,
+    },
+    body: {
+      flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
-      // gap: 20,
     },
     timeCircle: {
       width: 250,
@@ -266,13 +283,13 @@ function createStyles(theme) {
       shadowRadius: 3.5,
     },
     timeText: {
-      fontSize: 48,
+      fontSize: 50,
       fontWeight: 'bold',
       marginBottom: 50,
-      fontVariant: ['tabular-nums']
+      fontVariant: ['tabular-nums'],
     },
     guideContainer: {
-      position: 'absolute',
+      position: 'relative',
       top: 50,
       width: '100%',
       alignItems: 'center',

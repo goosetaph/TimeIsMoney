@@ -96,12 +96,14 @@ export default function HistoryScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Time Logs</Text>
-        <SafeAreaView style={styles.balanceContainer}>
+      </View>
+      <View style={styles.subHeader}>
+        <View style={styles.balanceContainer}>
           <FontAwesome6 name="coins" size={18} color="gold" />
           <Text style={styles.balanceText}>
             {formatTime(timeBalance)}
           </Text>
-        </SafeAreaView>
+        </View>
       </View>
       {history.length === 0 ? (
         <View style={styles.emptyState}>
@@ -144,15 +146,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-    padding: 20,
+    paddingTop: 20,
+    paddingBottom: 10,
   },
   headerTitle: {
     fontSize: 32,
     fontWeight: 'bold'
   },
+  subHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    padding: 20,
+  },
   balanceContainer: {
     position: 'absolute', //TODO: alternative to absolute position
-    top: 20,
     right: 20,
     flexDirection: 'row',
     alignItems: 'center',
@@ -172,8 +180,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   listPadding: {
-    paddingHorizontal: 15,
-    paddingBottom: 15,
+    padding: 15,
+    paddingBottom: 100,
   },
   logCard: {
     backgroundColor: '#fefefe',
