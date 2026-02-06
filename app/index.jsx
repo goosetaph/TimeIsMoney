@@ -1,8 +1,7 @@
-import { Text, View, TouchableOpacity, StyleSheet, Appearance, Animated } from "react-native";
+import { Text, View, TouchableOpacity, StyleSheet, Appearance, Animated, Dimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { FontAwesome6 } from '@expo/vector-icons';
-
 import { useCurrency } from "@/context/CurrencyContext";
 
 
@@ -13,12 +12,17 @@ export default function TimerScreen() {
   const [now, setNow] = useState(null);
   const [isRunning, setIsRunning] = useState(false);
   const [lapsedTime, setLapsedTime] = useState(0);
+  const [isProductive, setIsProductive] = useState(true);
+
+  const [touchStartY, setTouchStartY] = useState(0);
+
 
   const backgroundAnim = React.useRef(new Animated.Value(0)).current;
 
   const colorScheme = Appearance.getColorScheme()
   const styles = createStyles(colorScheme);
 
+  //Timer interval
   useEffect(() => {
     let interval;
 
@@ -37,11 +41,12 @@ export default function TimerScreen() {
 
   }, [isRunning]);
 
+  //Background Animation when isRunning
   useEffect(() => {
     let stopLoop = false;
     if (isRunning) {
       Animated.timing(backgroundAnim, {
-            toValue: 0.5,
+            toValue: isProductive ? 0.25 : 0.75,
             duration: 1500,
             useNativeDriver: false,
           }).start(({ finished }) => {
@@ -50,12 +55,12 @@ export default function TimerScreen() {
 
               Animated.sequence([
                 Animated.timing(backgroundAnim, {
-            toValue: 1,
+            toValue: isProductive ? 0.5 : 1,
             duration: 1500,
             useNativeDriver: false,
           }),
           Animated.timing(backgroundAnim, {
-            toValue: 0.5,
+            toValue: isProductive ? 0.25 : 0.75,
             duration: 1500,
             useNativeDriver: false,
           }),
@@ -72,7 +77,7 @@ export default function TimerScreen() {
       stopLoop = true;
       backgroundAnim.stopAnimation();
       Animated.timing(backgroundAnim, {
-        toValue: 0,
+        toValue: isProductive? 0 : 1.2,
         duration: 800,
         useNativeDriver: false,
       }).start();
@@ -83,8 +88,41 @@ export default function TimerScreen() {
     };
   }, [isRunning]);
 
+  useEffect(() => {
+    if (isProductive) {
+      Animated.timing(backgroundAnim, {
+        toValue: 0,
+        duration: 800,
+        useNativeDriver: false,
+      }).start();
+    } else {
+      Animated.timing(backgroundAnim, {
+        toValue: 1.2,
+        duration: 800,
+        useNativeDriver: false,
+      }).start();
+    }
+  }, [isProductive])
+
+  //TODO: same functions as sessionEarnings
   const time = isRunning ? (now - beginTime + lapsedTime) : lapsedTime;
 
+  const onTouchStart = (e) => {
+    setTouchStartY(e.nativeEvent.pageY);
+  }
+
+  const onTouchEnd = (e) => {
+    const touchEndY = e.nativeEvent.pageY;
+    const distance = touchStartY - touchEndY;
+
+    if (isRunning) return;
+
+    if (distance > 50) {
+      setIsProductive(false);
+    } else if (distance < -50){
+      setIsProductive(true);
+    }
+  }
 
   const startTime = () => {
     setIsRunning(true);
@@ -99,7 +137,11 @@ export default function TimerScreen() {
     const sessionEarnings = isRunning ? now - beginTime + lapsedTime: lapsedTime;
 
     if (sessionEarnings > 0) {
-      addTransaction(sessionEarnings, 'INCOME', 'Productivity Session')
+      if (isProductive){
+        addTransaction(sessionEarnings, 'INCOME', 'Productivity Session')
+      } else {
+        addTransaction(sessionEarnings, 'EXPENSE', 'Wasted Time')
+      }
 
     }
 
@@ -118,25 +160,49 @@ export default function TimerScreen() {
 
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${milliseconds.toString().padStart(3, '0')}`;
   }
-  //TODO: learn more about Animated (interpolate, useRef, etc)
+
   const backgroundColor = backgroundAnim.interpolate({
-    inputRange: [0, 0.5, 1],
-    outputRange: ['#fff', 'lightcyan', 'lightblue']
+    inputRange: [0, 0.25, 0.5, 0.75, 1, 1.2],
+    outputRange: ['#fff', 'lightcyan', 'lightblue', 'lightpink', 'pink', '#ffcccc']
   });
 
   return (
-    <Animated.View style={[styles.mainView, { backgroundColor }]}>
+    <Animated.View style={[styles.mainView, { backgroundColor }]}
+    onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}
+    >
+
       <SafeAreaView style={styles.walletContainer}>
         <FontAwesome6 name="coins" size={18} color="gold" />
         <Text style={styles.balanceText}>
           {formatTime(timeBalance)}
         </Text>
       </SafeAreaView>
-      <Text style={styles.timeText}>
-        {formatTime(time)}
-      </Text>
+
+      <View style={styles.guideContainer}>
+        {isProductive ? (
+          <View style={{alignItems: 'center'}}>
+            <Text style={styles.guideText}>Swipe UP for Worthless Mode</Text>
+            <FontAwesome6 name='chevron-up' size={20} color='#ccc'/>
+          </View>
+          ) : (
+          <View style={{alignItems: 'center'}}>
+            <FontAwesome6 name='chevron-down' size={20} color='#ccc'/>
+            <Text style={styles.guideText}>Swipe DOWN for Productive Mode</Text>
+          </View>
+          )
+        }
+      </View>
+
+      <View style={[styles.timeCircle, {borderColor: isProductive ? '#eee' : '#ffcccc'}]}>
+        <Text style={styles.timeText}>
+          {formatTime(time)}
+        </Text>
+        <Text style={{color: isProductive ? '#666' : '#d32f2f'}}>
+          {isProductive ? "Earning Time" : "Wasting Time"}
+        </Text>
+      </View>
+
       <View style={{ flexDirection: "row", gap: 20 }}>
-        {/* TODO: find better alternative than `gap` above */}
         {isRunning ? (
           <TouchableOpacity style={styles.stopButton} onPress={stopTime}>
             <FontAwesome6 name="pause" size={24} color="maroon" />
@@ -152,6 +218,12 @@ export default function TimerScreen() {
             <FontAwesome6 name="rotate-left" size={24} color="gray" />
           </TouchableOpacity>
         )}
+      </View>
+
+      <View style={{position: 'absolute', bottom: 50}}>
+        <Text style={{color: '#aaa', fontSize: 12}}>
+          {isRunning ? "Pause to switch mode" : ""}
+        </Text>
       </View>
 
     </Animated.View>
@@ -179,11 +251,38 @@ function createStyles(theme) {
       alignItems: 'center',
       // gap: 20,
     },
+    timeCircle: {
+      width: 250,
+      height: 250,
+      borderRadius: 125,
+      borderWidth: 5,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: 'white',
+      elevation: 5,
+      shadowColor: 'black',
+      shadowOffset: {width: 0, height: 2},
+      shadowOpacity: 0.1,
+      shadowRadius: 3.5,
+    },
     timeText: {
       fontSize: 48,
       fontWeight: 'bold',
       marginBottom: 50,
       fontVariant: ['tabular-nums']
+    },
+    guideContainer: {
+      position: 'absolute',
+      top: 50,
+      width: '100%',
+      alignItems: 'center',
+    },
+    guideText: {
+      color: '#999',
+      marginBottom: 5,
+      fontSize: 12,
+      textTransform: 'uppercase',
+      letterSpacing: 1,
     },
     startButton: {
       ...buttonBase,
