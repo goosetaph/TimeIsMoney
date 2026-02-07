@@ -154,8 +154,8 @@ export default function ShopScreen() {
           <Text style={styles.editToggleText}>{isEditMode ? "Done" : "Edit"}</Text>
         </TouchableOpacity>
         <View style={styles.balanceContainer}>
-          <FontAwesome6 name="coins" size={14} color="gold" />
-          <Text style={styles.balanceText}>
+          <FontAwesome6 name="coins" size={14} color={timeBalance < 0 ? '#ff3f3f' : 'gold'} />
+          <Text style={[styles.balanceText, {color: timeBalance < 0 ? '#ff3f3f' : 'gold'}]}>
             {timeBalance >= 36000000
               ? `${(timeBalance / 3600000).toFixed(1)}h`
               : `${Math.floor(timeBalance / 60000)}m`} available

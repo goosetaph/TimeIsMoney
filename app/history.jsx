@@ -28,12 +28,17 @@ export default function HistoryScreen() {
 
   const formatTime = (ms) => {
     if (!ms) return "00:00:00:000";
-    const hours = Math.floor(ms / 3600000);
-    const minutes = Math.floor((ms % 3600000) / 60000);
-    const seconds = Math.floor((ms % 60000) / 1000);
-    const milliseconds = Math.floor(ms % 1000);
+    const isNegative = ms < 0;
+    const absMs= Math.abs(ms);
 
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${milliseconds.toString().padStart(3, '0')}`;
+    const hours = Math.floor(absMs / 3600000)
+    const minutes = Math.floor((absMs % 3600000) / 60000);
+    const seconds = Math.floor((absMs % 60000) / 1000);
+    const milliseconds = Math.floor(absMs % 1000);
+
+    const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${milliseconds.toString().padStart(3, '0')}`;
+
+    return isNegative ? `-${timeString}` : timeString ;
   }
 
   const renderItem = ({ item }) => {
@@ -99,8 +104,8 @@ export default function HistoryScreen() {
       </View>
       <View style={styles.subHeader}>
         <View style={styles.balanceContainer}>
-          <FontAwesome6 name="coins" size={18} color="gold" />
-          <Text style={styles.balanceText}>
+          <FontAwesome6 name="coins" size={18} color={timeBalance < 0 ? '#ff3f3f' : 'gold'} />
+          <Text style={[styles.balanceText,{color: timeBalance < 0 ? '#ff3f3f' : 'gold'}]}>
             {formatTime(timeBalance)}
           </Text>
         </View>

@@ -16,7 +16,6 @@ export default function TimerScreen() {
 
   const [touchStartY, setTouchStartY] = useState(0);
 
-
   const backgroundAnim = React.useRef(new Animated.Value(0)).current;
 
   const colorScheme = Appearance.getColorScheme()
@@ -124,6 +123,15 @@ export default function TimerScreen() {
     }
   }
 
+  const setProductive = () => {
+    if (isRunning) return;
+    setIsProductive(true);
+  } 
+  const setNotProductive = () => {
+    if (isRunning) return;
+    setIsProductive(false);
+  } 
+
   const startTime = () => {
     setIsRunning(true);
   }
@@ -153,17 +161,23 @@ export default function TimerScreen() {
 
   const formatTime = (ms) => {
     if (!ms) return "00:00:00:000";
-    const hours = Math.floor(ms / 3600000)
-    const minutes = Math.floor((ms % 3600000) / 60000);
-    const seconds = Math.floor((ms % 60000) / 1000);
-    const milliseconds = Math.floor(ms % 1000);
 
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${milliseconds.toString().padStart(3, '0')}`;
+    const isNegative = ms < 0;
+    const absMs= Math.abs(ms);
+
+    const hours = Math.floor(absMs / 3600000)
+    const minutes = Math.floor((absMs % 3600000) / 60000);
+    const seconds = Math.floor((absMs % 60000) / 1000);
+    const milliseconds = Math.floor(absMs % 1000);
+
+    const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${milliseconds.toString().padStart(3, '0')}`;
+
+    return isNegative ? `-${timeString}` : timeString ;
   }
 
   const backgroundColor = backgroundAnim.interpolate({
     inputRange: [0, 0.25, 0.5, 0.75, 1, 1.2],
-    outputRange: ['#fff', 'lightcyan', 'lightblue', 'lightpink', 'pink', '#ffcccc']
+    outputRange: ['#ddf5fc', 'lightcyan', 'lightblue', 'lightpink', 'pink', '#ffcccc']
   });
 
   return (
@@ -173,8 +187,8 @@ export default function TimerScreen() {
       <SafeAreaView style={styles.mainView}>
         <View style={styles.subHeader}>
           <View style={styles.walletContainer}>
-            <FontAwesome6 name="coins" size={18} color="gold" />
-            <Text style={styles.balanceText}>
+            <FontAwesome6 name="coins" size={18} color={timeBalance < 0 ? '#ff3f3f' : 'gold'} />
+            <Text style={[styles.balanceText,{color: timeBalance < 0 ? '#ff3f3f' : 'gold'}]}>
               {formatTime(timeBalance)}
             </Text>
           </View>
@@ -188,7 +202,7 @@ export default function TimerScreen() {
           <Text style={styles.timeText}>
             {formatTime(time)}
           </Text>
-          <Text style={{color: isProductive ? '#666' : '#d32f2f'}}>
+          <Text style={{color: isProductive ? '#666' : '#d32f2f', fontSize: 18}}>
             {isProductive ? "Earning Time" : "Wasting Time"}
           </Text>
         </View>
@@ -214,12 +228,16 @@ export default function TimerScreen() {
         <View style={styles.guideContainer}>
           {isProductive ? (
             <View style={{alignItems: 'center'}}>
-              <Text style={styles.guideText}>Swipe UP for Worthless Mode</Text>
-              <FontAwesome6 name='chevron-up' size={20} color='#ccc'/>
+              <Text style={styles.guideText}>Swipe UP for Wasting Mode</Text>
+              <TouchableOpacity onPress={setNotProductive}>
+                <FontAwesome6 name='chevron-up' size={20} color='#ccc'/>
+              </TouchableOpacity>
             </View>
             ) : (
             <View style={{alignItems: 'center'}}>
-              <FontAwesome6 name='chevron-down' size={20} color='#ccc'/>
+              <TouchableOpacity onPress={setProductive}>
+                <FontAwesome6 name='chevron-down' size={20} color='#ccc'/>
+              </TouchableOpacity>
               <Text style={styles.guideText}>Swipe DOWN for Productive Mode</Text>
             </View>
             )
@@ -339,7 +357,7 @@ function createStyles(theme) {
       shadowOpacity: 0.3,
     },
     balanceText: {
-      color: 'gold',
+      // color: 'gold',
       fontWeight: 'bold',
       fontSize: 16,
     }
