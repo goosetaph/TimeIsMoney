@@ -84,7 +84,7 @@ export const CurrencyProvider = ({ children }) => {
         setShopItems(prev => prev.filter(item => item.id !== id))
     }
     const togglePinItem = (id) => {
-        setShopItems(prev => prev.map(item => item.id === id ? { ...item, isPinned: !item.isPinned }: item ))
+        setShopItems(prev => prev.map(item => item.id === id ? { ...item, isPinned : !item.isPinned }: item ))
     }
     const moveItem = (index, direction) => {
         setShopItems(prev => {

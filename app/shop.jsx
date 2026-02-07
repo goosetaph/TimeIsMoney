@@ -69,13 +69,13 @@ export default function ShopScreen() {
   }
 
   const saveItem = () => {
-    const cost = parseInt(cost) * 60 * 1000;
-    if (!name || !cost) return;
+    const finalCost = parseInt(cost) * 60 * 1000;
+    if (!name || !finalCost) return;
 
     if (editingItem) {
-      editShopItem(editingItem.id, { name, cost, icon, color });
+      editShopItem(editingItem.id, { name, cost: finalCost, icon, color });
     } else {
-      addShopItem({ name, cost, icon, color });
+      addShopItem({ name, cost: finalCost, icon, color });
     }
     setModalVisible(false);
   }
@@ -90,7 +90,7 @@ export default function ShopScreen() {
     return mins >= 60 ? `${mins / 60} hours` : `${mins} minutes`;
   }
 
-  const renderItem = ({ item }) => {
+  const renderItem = ({ item, index }) => {
     const canAfford = timeBalance >= item.cost;
 
     return (
