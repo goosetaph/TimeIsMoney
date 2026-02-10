@@ -24,11 +24,16 @@ export default function ShopScreen() {
   const handlePurchase = (item) => {
 
     if (timeBalance <= -MAX_DEBT_LIMIT) {
-      Alert.alert(
-        "BANKRUPTCY DECLARED",
-        "You have reached the 6 hours debt limit. You have lost having fun priviledge!"
-      );
-      return;
+      if (Platform.OS === 'web'){
+        window.alert("BANKRUPTCY DECLARED\n\n\You have reached the 6 hours debt limit. You have lost having fun priviledge!")
+        return;
+      } else {
+          Alert.alert(
+            "BANKRUPTCY DECLARED",
+            "You have reached the 6 hours debt limit. You have lost having fun priviledge!"
+          );
+          return;
+      }
     }
 
     const canAfford = timeBalance >= item.cost;
