@@ -1,8 +1,9 @@
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Platform, Alert, Modal, TextInput } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { FontAwesome6 } from "@expo/vector-icons";
-import { useCurrency } from "@/context/CurrencyContext";
+import { MAX_DEBT_LIMIT, LOAN_INTEREST_RATE, useCurrency } from "@/context/CurrencyContext";
 import { useState } from "react";
+
 
 export default function ShopScreen() {
   const { timeBalance, addTransaction, shopItems, addShopItem, editShopItem, deleteShopItem, togglePinItem, moveItem } = useCurrency();
@@ -21,11 +22,55 @@ export default function ShopScreen() {
 
 
   const handlePurchase = (item) => {
-    if (timeBalance < item.cost) {
-      if (Platform.OS === 'web') {
-        window.alert("Not enough time. Go work!");
+
+    if (timeBalance <= -MAX_DEBT_LIMIT) {
+      if (Platform.OS === 'web'){
+        window.alert("BANKRUPTCY DECLARED\n\n\You have reached the 6 hours debt limit. You have lost having fun priviledge!")
+        return;
       } else {
-        Alert.alert("Locked", "Not enough time. Go work!")
+          Alert.alert(
+            "BANKRUPTCY DECLARED",
+            "You have reached the 6 hours debt limit. You have lost having fun priviledge!"
+          );
+          return;
+      }
+    }
+
+    const canAfford = timeBalance >= item.cost;
+
+    if (!canAfford) {
+
+      const loanAmount = Math.floor(item.cost * (1 + LOAN_INTEREST_RATE))
+      const interestAmount = loanAmount - item.cost;
+
+      const costMins = Math.floor(item.cost / 60000);
+      const interestMins = Math.floor(interestAmount / 60000);
+      const totalMins = Math.floor(loanAmount / 60000);
+
+      if (Platform.OS === 'web') {
+        const confirmed = window.confirm(
+          `Insufficient Time.\n\nWould you like to take a LOAN for this item? \n\nItem Cost: ${costMins}m\nInterest (10%): +${interestMins}m\n\nTotal Loan: ${totalMins}m`,
+        );
+
+        if (confirmed) {
+          addTransaction(loanAmount, 'EXPENSE', `Loan: ${item.name} (+10%)`);
+        }
+      } else {
+        Alert.alert(
+          "Insufficient Time",
+          `Would you like to take a LOAN for this item? \n\nItem Cost: ${costMins}m\nInterest (10%): +${interestMins}m\n\nTotal Loan: ${totalMins}m`,
+          [
+            { text: "Cancel", style: "cancel"},
+            {
+              text: "Take Loan",
+              style: "destructive",
+              onPress: () => {
+                addTransaction(loanAmount, 'EXPENSE', `Loan: ${item.name} (+10%)`);
+                Alert.alert("Loan Approved", "Enjoy your DEBT!")
+              }
+            }
+          ]
+        )
       }
       return;
     }
@@ -93,6 +138,7 @@ export default function ShopScreen() {
 
   const renderItem = ({ item, index }) => {
     const canAfford = timeBalance >= item.cost;
+    const isBankrupt = timeBalance <= -MAX_DEBT_LIMIT;
 
     return (
       <View style={styles.itemCard}>
@@ -132,11 +178,11 @@ export default function ShopScreen() {
           </View>
         ):(
         <TouchableOpacity
-          style={[styles.buyButton, { backgroundColor: canAfford ? 'green' : 'gray' }]}
+          style={[styles.buyButton, { backgroundColor: canAfford ? 'green' : (isBankrupt ? 'gray' : 'orange') }]}
           onPress={() => handlePurchase(item)}
-          disabled={!canAfford}
+          // disabled={!canAfford}
         >
-          <Text style={styles.buyButtonText}>{canAfford ? 'Redeem' : 'Locked'}</Text>
+          <Text style={styles.buyButtonText}>{canAfford ? 'Redeem' : (isBankrupt ? 'Locked' : 'Loan?')}</Text>
         </TouchableOpacity>)
         }
       </View>
