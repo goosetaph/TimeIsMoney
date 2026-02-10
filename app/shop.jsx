@@ -80,9 +80,10 @@ export default function ShopScreen() {
     setModalVisible(false);
   }
 
-  const sortedItems = [...shopItems].sort((a, b) => {
-    if (a.isPinned === b.isPinned) return 0;
-    return a.isPinned ? -1 : 1;
+  const displayItems = [...shopItems].sort((a, b) => {
+    if (a.isPinned && !b.isPinned) return -1;
+    if (!a.isPinned && b.isPinned) return 1;
+    return 0;
   })
 
   const formatCost = (ms) => {
@@ -113,11 +114,11 @@ export default function ShopScreen() {
               <FontAwesome6 name="thumbtack" size={18} color={item.isPinned ? 'orange': '#ddd'}/>
             </TouchableOpacity>
             
-            <TouchableOpacity onPress={() => moveItem(index, -1)}>
+            <TouchableOpacity onPress={() => moveItem(item.id, -1)}>
               <FontAwesome6 name="arrow-up" size={18} color={'#555'}/>
             </TouchableOpacity>
 
-            <TouchableOpacity onPress={() => moveItem(index, 1)}>
+            <TouchableOpacity onPress={() => moveItem(item.id, 1)}>
               <FontAwesome6 name="arrow-down" size={18} color={'#555'}/>
             </TouchableOpacity>
 
@@ -164,7 +165,7 @@ export default function ShopScreen() {
       </View>
 
       <FlatList
-        data={isEditMode ? shopItems : sortedItems}
+        data={displayItems}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         contentContainerStyle={styles.listPadding}
