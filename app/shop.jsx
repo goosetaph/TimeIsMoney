@@ -96,6 +96,24 @@ export default function ShopScreen() {
     }
   }
 
+  const handleDelete = (itemId) => {
+    if (Platform.OS === 'web'){
+      const confirmed = window.confirm("Are you sure you want to remove this item from your shop? This action cannot be undone.");
+      if (confirmed) {
+        deleteShopItem(itemId)
+      }
+    } else {
+      Alert.alert(
+        "Delete Item",
+        "Are you sure you want to remove this item from your shop? This action cannot be undone.",
+        [
+          {text: "Cancel", style: "cancel"},
+          {text: "Delete", style: "destructive", onPress: () => {deleteShopItem(itemId)}}
+        ]
+      )
+    }
+  }
+
   const openModal = (item = null) => {
     if (item) {
       setEditingItem(item);
@@ -172,7 +190,7 @@ export default function ShopScreen() {
               <FontAwesome6 name="pencil" size={18} color={'blue'}/>
             </TouchableOpacity>
 
-            <TouchableOpacity onPress={() => deleteShopItem(item.id)}>
+            <TouchableOpacity onPress={() => handleDelete(item.id)}>
               <FontAwesome6 name="trash" size={18} color={'red'}/>
             </TouchableOpacity>
           </View>
