@@ -1,8 +1,8 @@
-import { Text, View, TouchableOpacity, StyleSheet, Appearance, Animated, Dimensions } from "react-native";
+import { Text, View, TouchableOpacity, StyleSheet, Appearance, Animated, Dimensions, Platform, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import React, { useEffect, useState } from "react";
 import { FontAwesome6 } from '@expo/vector-icons';
-import { useCurrency } from "@/context/CurrencyContext";
+import { PENALTY_THRESHOLDS, useCurrency } from "@/context/CurrencyContext";
 
 
 export default function TimerScreen() {
@@ -148,7 +148,43 @@ export default function TimerScreen() {
       if (isProductive){
         addTransaction(sessionEarnings, 'INCOME', 'Productivity Session')
       } else {
+        const startDebt = Math.abs(timeBalance);
+        const endDebt = startDebt + sessionEarnings;
+        let totalPenalty = 0;
+        let thresholdLabel = "";
+
+        PENALTY_THRESHOLDS.forEach( t => {
+          if (startDebt < t.limit && endDebt >= t.limit){
+            totalPenalty += t.penalty;
+            thresholdLabel = `${t.limit / 60000}m`;
+          }
+        })
         addTransaction(sessionEarnings, 'EXPENSE', 'Wasted Time')
+        
+        if (endDebt > 120 * 60 * 1000) {
+            const startChunks = Math.floor((startDebt - 120 * 60000) / (60 * 60000));
+            const endChunks = Math.floor((endDebt - 120 * 60000) / (60 * 60000));
+            
+            const newChunksCrossed = Math.max(0, endChunks - startChunks);
+            
+            if (newChunksCrossed > 0) {
+                const recurringFine = newChunksCrossed * (30 * 60 * 1000);
+                totalPenalty += recurringFine;
+                thresholdLabel = "Extended Debt";
+            }
+        }
+
+        if (totalPenalty > 0) {
+          addTransaction(totalPenalty, 'EXPENSE', `Debt Penalty (${thresholdLabel} threshold)`)
+
+          const penaltyMins = Math.floor(totalPenalty / 60000);
+          
+          if (Platform.OS === 'web'){
+            window.alert(`You just incurred a ${penaltyMins} minute penalty for going over the ${thresholdLabel} debt threshold.`)
+          } else {
+            Alert.alert(`You just incurred a ${penaltyMins} minute penalty for going over the ${thresholdLabel} debt threshold.`)
+          }
+        }
       }
 
     }
