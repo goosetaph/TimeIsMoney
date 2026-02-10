@@ -10,6 +10,16 @@ const DEFAULT_ITEMS = [
     { id: '4', name: '2 hour Movie', cost: 120 * 60 * 1000, icon: 'film', color: '#000000', isPinned: false },
 ]
 
+export const MAX_DEBT_LIMIT = 6 * 60 * 60 * 1000;
+export const LOAN_INTEREST_RATE = 0.10;
+export const PENALTY_THRESHOLDS = [
+    {limit: 60 * 60 * 1000, penalty: 10 * 60 * 1000},
+    {limit: 120 * 60 * 1000, penalty: 30 * 60 * 1000},
+
+]
+export const RECURRING_PENALTY_STEP = 60 * 60 * 1000;
+export const RECURRING_PENALTY_AMOUNT = 30 * 60 * 1000;
+
 export const CurrencyProvider = ({ children }) => {
     const [timeBalance, setTimeBalance] = useState(0);
     const [history, setHistory] = useState([]);
