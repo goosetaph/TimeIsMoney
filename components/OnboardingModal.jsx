@@ -16,13 +16,13 @@ const SLIDES = [
         title: "The History Logs",
         description: "Every second you submit into the Bank is recorded in the History section. \n\nGreen entries shows your earnings.\nRed entries shows your expenses.\n\n⚠️ Watch out for Penalties! Too much debt will trigger interest.",
         icon: "chart-line",
-        color: "red",
+        color: "orange",
     },
     {
         title: "The Shop (and Loans)",
         description: "Spend your hard-earned time on rewards in the Shop.\n\nCan't afford it? You can take a LOAN, but it comes with a 10% interest rate.\n\n🔒 If you go into too much debt, the Shop will lock!",
         icon: "shop",
-        color: "blue",
+        color: "red",
     },
 ];
 
