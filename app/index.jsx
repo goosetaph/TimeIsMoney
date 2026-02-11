@@ -1,3 +1,4 @@
+import OnboardingModal from "@/components/OnboardingModal";
 import { Text, View, TouchableOpacity, StyleSheet, Appearance, Animated, Dimensions, Platform, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import React, { useEffect, useState } from "react";
@@ -232,60 +233,61 @@ export default function TimerScreen() {
 
         <View style={styles.body}>
 
-        <View style={[styles.timeCircle, {borderColor: isProductive ? '#eee' : '#ffcccc'}]}/>
-        <View style={{position: 'absolute', top: 0, left: 0, right: 0, bottom: 80, justifyContent: 'center', alignItems: 'center'}}>
-          {/*TODO: find alternative of absolute position above */}
-          <Text style={styles.timeText}>
-            {formatTime(time)}
-          </Text>
-          <Text style={{color: isProductive ? '#666' : '#d32f2f', fontSize: 18}}>
-            {isProductive ? "Earning Time" : "Wasting Time"}
-          </Text>
-        </View>
+          <View style={[styles.timeCircle, {borderColor: isProductive ? '#eee' : '#ffcccc'}]}/>
+          <View style={{position: 'absolute', top: 0, left: 0, right: 0, bottom: 80, justifyContent: 'center', alignItems: 'center'}}>
+            {/*TODO: find alternative of absolute position above */}
+            <Text style={styles.timeText}>
+              {formatTime(time)}
+            </Text>
+            <Text style={{color: isProductive ? '#666' : '#d32f2f', fontSize: 18}}>
+              {isProductive ? "Earning Time" : "Wasting Time"}
+            </Text>
+          </View>
 
-        <View style={{ flexDirection: "row", gap: 20 }}>
-          {isRunning ? (
-            <TouchableOpacity style={styles.stopButton} onPress={stopTime}>
-              <FontAwesome6 name="pause" size={24} color="maroon" />
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity style={styles.startButton} onPress={startTime}>
-              <FontAwesome6 name="play" size={24} color="blue" />
-            </TouchableOpacity>
-          )
-          }
-          {time > 0 && (
-            <TouchableOpacity style={styles.resetButton} onPress={resetTime}>
-              <FontAwesome6 name="rotate-left" size={24} color="gray" />
-            </TouchableOpacity>
-          )}
-        </View>
-        
-        <View style={styles.guideContainer}>
-          {isProductive ? (
-            <View style={{alignItems: 'center'}}>
-              <Text style={styles.guideText}>Swipe UP for Wasting Mode</Text>
-              <TouchableOpacity onPress={setNotProductive}>
-                <FontAwesome6 name='chevron-up' size={20} color='#ccc'/>
+          <View style={{ flexDirection: "row", gap: 20 }}>
+            {isRunning ? (
+              <TouchableOpacity style={styles.stopButton} onPress={stopTime}>
+                <FontAwesome6 name="pause" size={24} color="maroon" />
               </TouchableOpacity>
-            </View>
             ) : (
-            <View style={{alignItems: 'center'}}>
-              <TouchableOpacity onPress={setProductive}>
-                <FontAwesome6 name='chevron-down' size={20} color='#ccc'/>
+              <TouchableOpacity style={styles.startButton} onPress={startTime}>
+                <FontAwesome6 name="play" size={24} color="blue" />
               </TouchableOpacity>
-              <Text style={styles.guideText}>Swipe DOWN for Productive Mode</Text>
-            </View>
             )
-          }
-        </View>
+            }
+            {time > 0 && (
+              <TouchableOpacity style={styles.resetButton} onPress={resetTime}>
+                <FontAwesome6 name="rotate-left" size={24} color="gray" />
+              </TouchableOpacity>
+            )}
+          </View>
+          
+          <View style={styles.guideContainer}>
+            {isProductive ? (
+              <View style={{alignItems: 'center'}}>
+                <Text style={styles.guideText}>Swipe UP for Wasting Mode</Text>
+                <TouchableOpacity onPress={setNotProductive}>
+                  <FontAwesome6 name='chevron-up' size={20} color='#ccc'/>
+                </TouchableOpacity>
+              </View>
+              ) : (
+              <View style={{alignItems: 'center'}}>
+                <TouchableOpacity onPress={setProductive}>
+                  <FontAwesome6 name='chevron-down' size={20} color='#ccc'/>
+                </TouchableOpacity>
+                <Text style={styles.guideText}>Swipe DOWN for Productive Mode</Text>
+              </View>
+              )
+            }
+          </View>
 
-        <View style={{position: 'relative', top: 70}}>
-          <Text style={{color: '#aaa', fontSize: 12}}>
-            {isRunning ? "Pause to switch mode" : ""}
-          </Text>
+          <View style={{position: 'relative', top: 70}}>
+            <Text style={{color: '#aaa', fontSize: 12}}>
+              {isRunning ? "Pause to switch mode" : ""}
+            </Text>
+          </View>
         </View>
-        </View>
+        <OnboardingModal />
       </SafeAreaView>
     </Animated.View>
   );
