@@ -144,7 +144,6 @@ export default function HistoryScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     backgroundColor: '#f8f8f8',
   },
   header: {
@@ -152,7 +151,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     alignItems: 'center',
     paddingTop: 20,
-    paddingBottom: 10,
   },
   headerTitle: {
     fontSize: 32,
